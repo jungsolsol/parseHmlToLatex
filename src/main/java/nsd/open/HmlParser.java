@@ -62,11 +62,11 @@ public class HmlParser {
                 script.html(newStr);
             }
         }
-        savePrettyXMLToFile(parsed.toString(),originFile);
+        saveXML(parsed.toString(),originFile);
     }
 
 
-    private static void savePrettyXMLToFile(String prettyXML, File originalFile) {
+    private static void saveXML(String prettyXML, File originalFile) {
 
         String newFileName = originalFile.getAbsolutePath().replace(".hml", "_parsed.xml");
 
