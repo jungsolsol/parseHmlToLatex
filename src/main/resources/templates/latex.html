@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Latex Rendering</title>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          extensions: ["TeX/cancel.js"], // this allows use of the "cancel" macro
+          tex2jax: {
+            inlineMath: [ ['$','$'] ],
+            displayMath: [ ['$$','$$'] ],
+            processEscapes: true         // this allows me to use a literal dollar sign, \$, outside of math mode
+          }
+      });
+    </script>
+    <script type="text/javascript"
+            src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+</head>
+<body>
+<h1>Latex Example</h1>
+<p th:text="${QuestionContent}"></p>
+<div th:text="${latexContent}"></div>
+
+
+</body>
+</html>
