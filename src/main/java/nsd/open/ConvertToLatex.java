@@ -41,6 +41,24 @@ public class ConvertToLatex {
         }
 
     }
+
+    public static int symbolToNumber(String symbol) {
+
+        Map<String, Integer> symbolToNumberMap = new HashMap<>();
+        symbolToNumberMap.put("①", 1);
+        symbolToNumberMap.put("②", 2);
+        symbolToNumberMap.put("③", 3);
+        symbolToNumberMap.put("④", 4);
+        symbolToNumberMap.put("⑤", 5);
+        if (symbolToNumberMap.containsKey(symbol)) {
+            int number = symbolToNumberMap.get(symbol);
+            System.out.println(number);
+            return number;
+        } else {
+            System.out.println("Symbol not found in the map.");
+            return -1;
+        }
+    }
     /**
      * hml -> xml로 변경
      *
