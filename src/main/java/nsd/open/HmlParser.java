@@ -1,20 +1,13 @@
 package nsd.open;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.fasterxml.jackson.dataformat.yaml.UTF8Reader;
 import jakarta.annotation.PostConstruct;
+import nsd.open.utils.ConvertToLatex;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import static nsd.open.ConvertToLatex.parseXml;
+import static nsd.open.utils.ConvertToLatex.parseXml;
 
 
 @SpringBootApplication

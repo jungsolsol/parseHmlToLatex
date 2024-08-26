@@ -1,21 +1,16 @@
 package nsd.open.controller;
 
-import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import nsd.open.ConvertToLatex;
-import nsd.open.HmlParser;
-import nsd.open.dto.Answer;
 import nsd.open.dto.HtmlRender;
 import nsd.open.dto.Question;
 import nsd.open.service.QuestionService;
 import nsd.open.service.XmlParseService;
-import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +18,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-
-import static nsd.open.ConvertToLatex.parseXml;
 
 
 @Controller
@@ -58,7 +48,29 @@ public class XmlController {
     @ResponseBody
     public ResponseEntity<?> insertQuestion(){
 
+        String filePath = "C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xml\\";
+        File directory = new File(filePath);
+        File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
 
+        if (files != null) {
+            for (File file : files) {
+                try (FileReader rw = new FileReader(file)) {
+
+                    StringBuilder content = new StringBuilder();
+                    int i;
+                    while ((i = rw.read()) != -1) {
+                        content.append((char) i);
+                    }
+                    Document doc = xmlParseService.getDocument(content.toString());
+                    Elements elements = doc.getElementsByTag("BODY");
+                    xmlParseService.parseQuestion(elements);
+//                    HtmlRender htmlRender = xmlParseService.renderHtml(content.toString());
+                }
+
+                catch (Exception e) {
+                }
+            }
+            }
         return new ResponseEntity<>("response", HttpStatus.OK);
     }
 
@@ -77,8 +89,6 @@ public class XmlController {
     @GetMapping("/latex")
     public String renderXml(Model model, @RequestParam(value = "fileName",required = false) String fileName) throws IOException, ParserConfigurationException, SAXException {
         String filePath = "C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xml\\";
-//        String filePath= "classpath:xml/"+fileName;
-
         File directory = new File(filePath);
 //        File[] files = directory.listFiles((dir, name) -> name.(fileName));
 //        File[] files = directory.listFiles((dir, name) -> name.matches(fileName));

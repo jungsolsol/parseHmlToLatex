@@ -1,4 +1,4 @@
-package nsd.open;
+package nsd.open.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
