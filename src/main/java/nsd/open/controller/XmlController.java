@@ -1,18 +1,27 @@
 package nsd.open.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import nsd.open.ConvertToLatex;
 import nsd.open.HmlParser;
 import nsd.open.dto.Answer;
 import nsd.open.dto.HtmlRender;
+import nsd.open.dto.Question;
+import nsd.open.service.QuestionService;
 import nsd.open.service.XmlParseService;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -23,18 +32,47 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import static nsd.open.ConvertToLatex.parseXml;
 
 
 @Controller
 @RequiredArgsConstructor
+@RequestMapping("/api/xml")
 public class XmlController {
 
 
-    private final   XmlParseService xmlParseService;
+    private final XmlParseService xmlParseService;
+
+    private final QuestionService questionService;
+
 
     private final  ResourceLoader resourceLoader;
+
+    @Operation(summary = "문항 저장", description = "문항 저장",tags = "hml to WC")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = HtmlRender.class)))
+    })
+    @PostMapping
+    @ResponseBody
+    public ResponseEntity<?> insertQuestion(){
+
+        return new ResponseEntity<>("response", HttpStatus.OK);
+    }
+
+    @Operation(summary = "문항 검색", description = "문항 검색",tags = "")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Question.class)))
+    })
+    @GetMapping
+    @ResponseBody
+    public ResponseEntity<?> getQuestion() {
+
+
+        return new ResponseEntity<>("response", HttpStatus.OK);
+    }
+
     @GetMapping("/latex")
     public String renderXml(Model model, @RequestParam(value = "fileName",required = false) String fileName) throws IOException, ParserConfigurationException, SAXException {
         String filePath = "C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xml\\";
@@ -66,10 +104,14 @@ public class XmlController {
                 }
             }
 //            return "latex";
+            List<Question> allQuestion = questionService.getAllQuestion();
+            model.addAttribute("QuestionByDB", allQuestion);
+
 
         } else {
             System.out.println("No .hml files found in the directory.");
         }
+
 
         return "latex";
     }

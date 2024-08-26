@@ -4,4 +4,20 @@
 <!--    <select id="getAllRooms" resultType="com.example.demo.room.dto.RoomDto">-->
 <!--        select * from gameroom;-->
 <!--    </select>-->
+    <!--테스트용-->
+    <select id="getAllQuestion" resultType="nsd.open.dto.Question">
+        select q.question from question q;
+    </select>
+
+    <insert id="insertQuestion" parameterType="nsd.open.dto.Question">
+        insert into question (id, qt_id, use_yn, open_yn, rgst_id, rgst_dt, uptsr_id, uptsr_dt, passage, main, main_id,
+                                       control_no, waiting_time, audio_time, answer_time, assign_cnt, stare_cnt, correct_cnt,
+                                       answer_type, keyword, mediatags, point, answer_cnt, header_text, question, sch_lvl_code,
+                                       grade_code, grd_group_code, term_code, subj_code, unit_code, unit, session_code,
+                                       "session", sub1session_code, sub1session, topic_code, topic, domain_code,
+                                       sub_domain_code, ach_code, sub_ach, sub_ach_rubric, eval_standard_code,
+                                       eval_stand_rubric, func_code, comp_domain_code, comp_domain, key_concept_code,
+                                       general_code, contents_code, diff_code, ques_anst, origin_id)
+        values ();
+</insert>
 </mapper>
