@@ -11,10 +11,7 @@ import org.jsoup.select.Elements;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +19,8 @@ public class ConvertToLatex {
 
     private static JsonNode convertMap;
     private static Map<String,String> jsonConvertMap;
+    private static Map<String,String> varHashMap;
+    private static Map<String,String> middleHashMap;
 
     static {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -30,6 +29,10 @@ public class ConvertToLatex {
             convertMap = objectMapper.readTree(jsonFile);
 
             JsonNode mapNode = convertMap.get("convertMap");
+            JsonNode varNode = convertMap.get("BarConvertMap");
+            JsonNode middleNode = convertMap.get("middleConvertMap");
+            varHashMap = objectMapper.convertValue(varNode, new TypeReference<Map<String, String>>(){});
+            middleHashMap = objectMapper.convertValue(middleNode, new TypeReference<Map<String, String>>(){});
             jsonConvertMap = objectMapper.convertValue(mapNode, new TypeReference<Map<String, String>>(){});
 
 
@@ -93,8 +96,9 @@ public class ConvertToLatex {
         strList = strConverted.split(" ");
 
 
-        strList = convertStrings(strList, jsonConvertMap);
+        strList = convertStrings(strList, jsonConvertMap,middleHashMap);
 
+//        strList = convertMiddleString(strList, middleHashMap);
         List<String> filteredList = new ArrayList<>();
         for (String string : strList) {
             if (string.length() != 0) {
@@ -106,20 +110,52 @@ public class ConvertToLatex {
         strList = replaceBracket(strList);
 
         strConverted = String.join(" ", strList);
-
         strConverted = replaceFrac(strConverted);
         strConverted = strConverted.replace("#", "\\\\");
-        replaceRootOf(strConverted);
-        replaceAllMatrix(strConverted);
-        replaceAllBar(strConverted);
-        replaceAllBrace(strConverted);
+        strConverted = replaceRootOf(strConverted);
+
+//        replaceAllMatrix(strConverted);
+//        replaceAllBrace(strConverted);
         strConverted = strConverted.replace("\\\\times", "\\times");
         strConverted = strConverted.replaceAll("(\\\\div)([a-zA-Z])", "$1 $2");
+        strConverted = replaceFrac(replaceOver(strConverted));
+
+        //무한루프
+
+//        strConverted = replaceAllBar(strConverted);
+//        strConverted = replaceLeftOrRight(strConverted);
+
+        strConverted = strConverted.replaceAll("HULKBAR","\\\\overline");
+        strConverted = strConverted.replaceAll("HULKVEC","\\\\overrightarrow");
+        strConverted = strConverted.replaceAll("HULKDYAD","\\\\overleftrightarrow");
+        strConverted = strConverted.replaceAll("it","");
+        strConverted = strConverted.replaceAll("therefore","\\\\therefore");
+
         strConverted = removeUnmatchedBraces(strConverted);
-//        strConverted = replaceFrac2(replaceOver(strConverted));
 
         return strConverted;
     }
+
+    private static String[] convertMiddleString(String[] strList, Map<String, String> middleHashMap) {
+        for (int i = 0; i < strList.length; i++) {
+            String candidate = strList[i];
+            for (Map.Entry<String, String> entry : middleHashMap.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (candidate.contains(key)) {
+                    candidate = candidate.replace(key, value);
+                }
+            }
+            strList[i] = candidate;
+        }
+        return strList;
+    }
+
+//    private static String replaceLeftOrRight(String strConverted) {
+//        Pattern left = Pattern.compile("(\\S+)\\s*left\\s*(\\S+)", Pattern.CASE_INSENSITIVE);
+//        Pattern right = Pattern.compile("(\\S+)\\s*right\\s*(\\S+)", Pattern.CASE_INSENSITIVE);
+//
+//    }
 
 //    private static String replaceOver(String strConverted) {
 //        strConverted = strConverted.replaceAll("(?i)(\\S)(?=over)", "$1 ");
@@ -146,13 +182,26 @@ public class ConvertToLatex {
 //    }
 
     private static String replaceOver(String strConverted) {
-        strConverted = strConverted.replaceAll("(?i)(\\S)(?=over)", "$1 ");
-        strConverted = strConverted.replaceAll("(?i)(?<=over)(\\S)", " $1");
+        Pattern pattern = Pattern.compile("(\\S+)\\s*over\\s*(\\S+)", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(strConverted);
 
-        return strConverted;
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find()) {
+            String beforeOver = matcher.group(1);
+            String afterOver = matcher.group(2);
+
+            String replacement = "{" + beforeOver + "} over {" + afterOver + "}";
+            matcher.appendReplacement(result, replacement);
+        }
+
+        matcher.appendTail(result);
+
+        return result.toString();
+
     }
 
-    private static String[] convertStrings(String[] strList, Map<String, String> convertMap) {
+    private static String[] convertStrings(String[] strList, Map<String, String> convertMap, Map<String, String> middleMap) {
         for (int i = 0; i < strList.length; i++) {
             String candidate = strList[i];
             for (Map.Entry<String, String> entry : convertMap.entrySet()) {
@@ -160,8 +209,14 @@ public class ConvertToLatex {
                 String value = entry.getValue();
                 if (candidate.contains(key)) {
                     candidate = candidate.replace(key, value);
+                } else if (middleMap.containsKey(key) && candidate.contains(key)) {
+                    System.out.println(key);
+                    candidate = candidate.replace(key, middleMap.get(key));
                 }
             }
+
+
+
             strList[i] = candidate;
         }
         return strList;
@@ -170,14 +225,70 @@ public class ConvertToLatex {
     private static void replaceAllBrace(String strConverted) {
     }
 
-    private static void replaceAllBar(String strConverted) {
+    public static String replaceAllBar(String eqString) {
+
+
+        eqString = eqString.replace("HULKBAR", "\\overline");
+    return eqString;
+    }
+//        for (Map.Entry<String, String> entry : varHashMap.entrySet()) {
+//            eqString = replaceBar(eqString, entry.getKey(), entry.getValue());
+//        }
+//        return eqString;
+//
+//    }
+//    private static String replaceBar(String eqString, String barStr, String barElem) {
+//        int cursor = 0;
+//
+//
+//        while (cursor != -1) {
+//            cursor = eqString.indexOf(barStr, cursor);
+//            if (cursor == -1) {
+//                break;
+//            }
+//
+//            try {
+//                int[] brackets = findBrackets(eqString, cursor, 1);
+//                int eStart = brackets[0];
+//                int eEnd = brackets[1];
+//
+//                int[] outerBrackets = findOutterBrackets(eqString, cursor);
+//                int bStart = outerBrackets[0];
+//                int bEnd = outerBrackets[1];
+//
+//                String elem = eqString.substring(eStart, eEnd);
+//                String beforeBar = eqString.substring(0, bStart);
+//                String afterBar = eqString.substring(bEnd);
+//
+//                eqString = beforeBar + barElem + elem + afterBar;
+//
+//                cursor = beforeBar.length() + barElem.length() + elem.length();
+//            } catch (Exception e) {
+//                return eqString;
+//            }
+//        }
+//        return eqString;
+//    }
+
+    private static int[] findOutterBrackets(String eqString, int startIdx) throws Exception {
+        int idx = startIdx;
+        while (true) {
+            idx -= 1;
+            if (eqString.charAt(idx) == '{') {
+                break;
+            }
+            if (idx < 0) {
+                throw new Exception("No matching '{' found.");
+            }
+        }
+        return findBrackets(eqString, idx, 1);
     }
 
     private static void replaceAllMatrix(String strConverted) {
     }
 
     /**
-     * 괄호 삭제 열린괄호만있고 닫힌괄호는없는경우..
+     * 괄호 추가 열린괄호만있고 닫힌괄호는없는경우.. 괄호 추가
      * @param input
      * @return
      */
@@ -198,18 +309,23 @@ public class ConvertToLatex {
                 sb.append(c);
             }
         }
-        String result = sb.toString();
+//        String result = sb.toString();
+        //괄호 제거
+//        while (openBraceCount > 0) {
+//            int lastOpenBraceIndex = result.lastIndexOf('{');
+//            if (lastOpenBraceIndex >= 0) {
+//                result = result.substring(0, lastOpenBraceIndex) + result.substring(lastOpenBraceIndex + 1);
+//                openBraceCount--;
+//            } else {
+//                break;
+//            }
+//        }
+        //닫힌 괄호 추가
         while (openBraceCount > 0) {
-            int lastOpenBraceIndex = result.lastIndexOf('{');
-            if (lastOpenBraceIndex >= 0) {
-                result = result.substring(0, lastOpenBraceIndex) + result.substring(lastOpenBraceIndex + 1);
-                openBraceCount--;
-            } else {
-                break;
-            }
+            sb.append('}');
+            openBraceCount--;
         }
-
-        return result;
+        return sb.toString();
     }
 
     /**
@@ -290,7 +406,7 @@ public class ConvertToLatex {
         for (int i = 0; i < strList.length; i++) {
             String string = strList[i];
             if (string.equals("{")) {
-                if (i > 0 && strList[i - 1].equals("\\left")) {
+                if (i > 0 && strList[i - 1].equals("\\left"))  {
                     strList[i] = "\\{";
                 }
             } else if (string.equals("}")) {

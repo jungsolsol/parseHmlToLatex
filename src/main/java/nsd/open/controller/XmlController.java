@@ -31,7 +31,9 @@ import static nsd.open.ConvertToLatex.parseXml;
 @RequiredArgsConstructor
 public class XmlController {
 
+
     private final   XmlParseService xmlParseService;
+
     private final  ResourceLoader resourceLoader;
     @GetMapping("/latex")
     public String renderXml(Model model, @RequestParam(value = "fileName",required = false) String fileName) throws IOException, ParserConfigurationException, SAXException {

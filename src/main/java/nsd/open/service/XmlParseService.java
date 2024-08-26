@@ -1,5 +1,6 @@
 package nsd.open.service;
 
+import lombok.RequiredArgsConstructor;
 import nsd.open.dto.Answer;
 import nsd.open.dto.HtmlRender;
 import nsd.open.dto.Latex;
@@ -17,7 +18,11 @@ import java.util.List;
 
 
 @Service
+@RequiredArgsConstructor
 public class XmlParseService {
+
+//    private final QuestionService questionService;
+
     public HtmlRender renderHtml(String doc) throws ParserConfigurationException, IOException, SAXException {
         org.jsoup.nodes.Document parsed = Jsoup.parse(doc, "", Parser.xmlParser());
         org.jsoup.nodes.Document document = parsed.outputSettings(new org.jsoup.nodes.Document.OutputSettings().prettyPrint(true).indentAmount(4));
