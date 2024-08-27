@@ -6,5 +6,5 @@ import lombok.Builder;
 
 @Builder
 @Schema(description = "문항타입 DTO 객체")
-public record QuestionType() {
+public class QuestionTypeDto {
 }

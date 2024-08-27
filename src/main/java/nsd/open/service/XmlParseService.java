@@ -25,18 +25,20 @@ public class XmlParseService {
 
 //    private final QuestionService questionService;
 
-    public HtmlRender renderHtml(String doc) throws ParserConfigurationException, IOException, SAXException {
+    public HtmlRenderDto renderHtml(String doc) throws ParserConfigurationException, IOException, SAXException {
         org.jsoup.nodes.Document parsed = Jsoup.parse(doc, "", Parser.xmlParser());
         org.jsoup.nodes.Document document = parsed.outputSettings(new org.jsoup.nodes.Document.OutputSettings().prettyPrint(true).indentAmount(4));
 
         Elements pTags = document.getElementsByTag("p");
-        List<Latex> latexList = extractLatexData(pTags);
-        Latex combinedLatex = combineLatex(latexList);
-        List<Question> questionList = extractQuestion(pTags);
-        Question question = combineQueestion(questionList);
+        List<LatexDto> latexList = extractLatexData(pTags);
+        LatexDto combinedLatex = combineLatex(latexList);
+        List<ParseQuestionDto> questionList = extractQuestion(pTags);
+        ParseQuestionDto question = combineQueestion(questionList);
 
-        return new HtmlRender(new Answer("A"), combinedLatex, question);
-    }
+        return   HtmlRenderDto.builder()
+                .answer(AnswerDto.builder().content("AAA").build())
+                .parseQuestion(question)
+                .latex(combinedLatex).build();}
 
     public Document getDocument(String doc) {
         org.jsoup.nodes.Document parsed = Jsoup.parse(doc, "", Parser.xmlParser());
@@ -87,8 +89,8 @@ public class XmlParseService {
 //
 //        return questionList;
 //    }
-        public List<ParseQuestion> parseQuestion (Elements elements){
-            List<ParseQuestion> questionList = new ArrayList<>();
+        public List<ParseQuestionDto> parseQuestion (Elements elements){
+            List<ParseQuestionDto> questionList = new ArrayList<>();
 
             if (elements == null || elements.isEmpty()) {
                 return questionList;
@@ -111,7 +113,7 @@ public class XmlParseService {
                     if (questionId != null && !questionId.trim().isEmpty() &&
                             questionText != null && !questionText.trim().isEmpty() &&
                             answer != null && !answer.trim().isEmpty()) {
-                        questionList.add(ParseQuestion.builder()
+                        questionList.add(ParseQuestionDto.builder()
                                 .questionId(questionId)
                                 .questionText(questionText)
                                 .answer(answer)
@@ -167,30 +169,30 @@ public class XmlParseService {
     }
 
 
-    private List<Question> extractQuestion(Elements elements) {
-        List<Question> questionList = new ArrayList<>();
+    private List<ParseQuestionDto> extractQuestion(Elements elements) {
+        List<ParseQuestionDto> questionList = new ArrayList<>();
 
         for (org.jsoup.nodes.Element p : elements) {
             Elements scripts = p.getElementsByTag("CHAR");
 
             for (org.jsoup.nodes.Element script : scripts) {
                 String scriptContent = script.html();
-                Question question = Question.builder().question(scriptContent).build();
+                ParseQuestionDto question = ParseQuestionDto.builder().questionText(scriptContent).build();
                 questionList.add(question);
             }
         }
 
         return questionList;
     }
-    private List<Latex> extractLatexData(Elements elements) {
-        List<Latex> latexList = new ArrayList<>();
+    private List<LatexDto> extractLatexData(Elements elements) {
+        List<LatexDto> latexList = new ArrayList<>();
 
         for (org.jsoup.nodes.Element p : elements) {
             Elements scripts = p.getElementsByTag("script");
 
             for (org.jsoup.nodes.Element script : scripts) {
                 String scriptContent = script.html();
-                Latex latex = Latex.builder().latex("$" + scriptContent + "$").build();
+                LatexDto latex = LatexDto.builder().latex("$" + scriptContent + "$").build();
 
                 latexList.add(latex);
             }
@@ -199,20 +201,20 @@ public class XmlParseService {
         return latexList;
     }
 
-    private Latex combineLatex(List<Latex> latexList) {
+    private LatexDto combineLatex(List<LatexDto> latexList) {
         StringBuilder combinedLatex = new StringBuilder();
-        for (Latex latex : latexList) {
-            combinedLatex.append(latex.latex()).append("\n");
+        for (LatexDto latex : latexList) {
+            combinedLatex.append(latex.getLatex()).append("\n");
         }
-        return Latex.builder().latex(combinedLatex.toString()).build();
+        return LatexDto.builder().latex(combinedLatex.toString()).build();
     }
 
-    private Question combineQueestion(List<Question> questionList) {
+    private ParseQuestionDto combineQueestion(List<ParseQuestionDto> questionList) {
         StringBuilder combinedQuestion = new StringBuilder();
-        for (Question question : questionList) {
-            combinedQuestion.append(question.question()).append("\n");
+        for (ParseQuestionDto question : questionList) {
+            combinedQuestion.append(question.getQuestionText()).append("\n");
         }
-        return Question.builder().question(combinedQuestion.toString()).build();
+        return ParseQuestionDto.builder().questionText(combinedQuestion.toString()).build();
     }
 
 

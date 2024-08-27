@@ -2,8 +2,8 @@ package nsd.open.service;
 
 import lombok.RequiredArgsConstructor;
 import nsd.open.dao.QuestionDao;
-import nsd.open.dto.ParseQuestion;
-import nsd.open.dto.Question;
+import nsd.open.dto.ParseQuestionDto;
+import nsd.open.dto.QuestionDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,14 +14,14 @@ public class QuestionServiceImpl implements QuestionService{
 
     private final QuestionDao questionDao;
     @Override
-    public List<Question> getAllQuestion() {
+    public List<QuestionDto> getAllQuestion() {
 
         return questionDao.getAllQuestion();
     }
 
     @Override
-    public void insertParseXmlQuestion(List<ParseQuestion> questionList) {
-        for (ParseQuestion pQuestion : questionList) {
+    public void insertParseXmlQuestion(List<ParseQuestionDto> questionList) {
+        for (ParseQuestionDto pQuestion : questionList) {
 
 
 

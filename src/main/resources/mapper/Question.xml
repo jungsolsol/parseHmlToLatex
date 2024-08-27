@@ -5,11 +5,11 @@
 <!--        select * from gameroom;-->
 <!--    </select>-->
     <!--테스트용-->
-    <select id="getAllQuestion" resultType="nsd.open.dto.Question">
+    <select id="getAllQuestion" resultType="nsd.open.dto.QuestionDto">
         select q.question from question q;
     </select>
 
-    <insert id="insertQuestion" parameterType="nsd.open.dto.Question">
+    <insert id="insertQuestion" parameterType="nsd.open.dto.QuestionDto">
         insert into question (id, qt_id, use_yn, open_yn, rgst_id, rgst_dt, uptsr_id, uptsr_dt, passage, main, main_id,
                                        control_no, waiting_time, audio_time, answer_time, assign_cnt, stare_cnt, correct_cnt,
                                        answer_type, keyword, mediatags, point, answer_cnt, header_text, question, sch_lvl_code,

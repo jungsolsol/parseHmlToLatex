@@ -5,14 +5,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import nsd.open.dto.HtmlRender;
-import nsd.open.dto.ParseQuestion;
-import nsd.open.dto.Question;
+import nsd.open.dto.HtmlRenderDto;
+import nsd.open.dto.ParseQuestionDto;
+import nsd.open.dto.QuestionDto;
 import nsd.open.service.QuestionService;
 import nsd.open.service.XmlParseService;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -40,11 +39,11 @@ public class XmlController {
     private final QuestionService questionService;
 
 
-    private final  ResourceLoader resourceLoader;
+//    private final  ResourceLoader resourceLoader;
 
     @Operation(summary = "문항 저장", description = "문항 저장",tags = "hml to WC")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = HtmlRender.class)))
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = HtmlRenderDto.class)))
     })
     @PostMapping
     @ResponseBody
@@ -54,7 +53,7 @@ public class XmlController {
         File directory = new File(filePath);
         File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
 
-        List<ParseQuestion> questionList = new ArrayList<>();
+        List<ParseQuestionDto> questionList = new ArrayList<>();
         if (files != null) {
             for (File file : files) {
                 try (FileReader rw = new FileReader(file)) {
@@ -79,7 +78,7 @@ public class XmlController {
 
     @Operation(summary = "문항 검색", description = "문항 검색",tags = "")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Question.class)))
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = QuestionDto.class)))
     })
     @GetMapping
     @ResponseBody
@@ -107,10 +106,9 @@ public class XmlController {
                     while ((i = rw.read()) != -1) {
                         content.append((char) i);
                     }
-                    HtmlRender htmlRender = xmlParseService.renderHtml(content.toString());
-                    System.out.println(htmlRender.latex().latex().toString());
-                    model.addAttribute("latexContent", htmlRender.latex().latex());
-                    model.addAttribute("QuestionContent", htmlRender.question().questionText());
+                    HtmlRenderDto htmlRender = xmlParseService.renderHtml(content.toString());
+                    model.addAttribute("latexContent", htmlRender.getLatex().getLatex());
+                    model.addAttribute("QuestionContent", htmlRender.getParseQuestion().getQuestionText());
                 }
 
                     catch (IOException e) {
@@ -118,7 +116,7 @@ public class XmlController {
                 }
             }
 //            return "latex";
-            List<Question> allQuestion = questionService.getAllQuestion();
+            List<QuestionDto> allQuestion = questionService.getAllQuestion();
             model.addAttribute("QuestionByDB", allQuestion);
 
 

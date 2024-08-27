@@ -2,11 +2,12 @@ package nsd.open;
 
 import java.io.*;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import nsd.open.utils.ConvertToLatex;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import javax.annotation.PostConstruct;
 
 import static nsd.open.utils.ConvertToLatex.parseXml;
 

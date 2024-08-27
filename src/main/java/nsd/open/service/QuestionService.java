@@ -1,12 +1,12 @@
 package nsd.open.service;
 
-import nsd.open.dto.ParseQuestion;
-import nsd.open.dto.Question;
+import nsd.open.dto.ParseQuestionDto;
+import nsd.open.dto.QuestionDto;
 
 import java.util.List;
 
 public interface QuestionService {
-    List<Question>  getAllQuestion();
+    List<QuestionDto>  getAllQuestion();
 
-    void insertParseXmlQuestion(List<ParseQuestion> questionList);
+    void insertParseXmlQuestion(List<ParseQuestionDto> questionList);
 }

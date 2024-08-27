@@ -3,6 +3,6 @@ package nsd.open.dto;
 import lombok.Builder;
 
 @Builder
-
-public record Latex(String latex) {
+public class AnswerDto {
+    private String content;
 }
