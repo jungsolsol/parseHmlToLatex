@@ -82,11 +82,11 @@ public class XmlController {
 
 
         if (RequestQType.천재교육.getQTypeId() == 1) {
-            ArrayList<ArrayList<String>> arrayLists = parseService.readFilter("C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xlsx\\수학1(이준열)_4-1-1_문항속성.xlsx");
+            questionDetailDtoList = parseService.readFilter("C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xlsx\\수학1(이준열)_4-1-1_문항속성.xlsx");
 
         }
 
-        questionService.insertParseXmlQuestion(questionList,questionDetailDtoList);
+        questionService.insertParseXmlQuestion(questionList, questionDetailDtoList);
         return new ResponseEntity<>(questionList, HttpStatus.OK);
     }
 

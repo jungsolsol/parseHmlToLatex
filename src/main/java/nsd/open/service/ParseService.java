@@ -222,7 +222,7 @@ public class ParseService {
         }
     return null;
     }
-    public ArrayList<ArrayList<String>> readFilter(String fileName) throws IOException {
+    public List<ParseQuestionDetailDto> readFilter(String fileName) throws IOException {
         FileInputStream fis = new FileInputStream(fileName);
         List<ParseQuestionDetailDto> questionDetailDtoList = new ArrayList<>();
 
@@ -309,7 +309,7 @@ public class ParseService {
             System.out.println(dtos);
         }
 
-        return filters;
+        return questionDetailDtoList;
     }
 
 }

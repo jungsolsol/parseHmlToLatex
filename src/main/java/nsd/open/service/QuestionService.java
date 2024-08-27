@@ -10,4 +10,6 @@ public interface QuestionService {
     List<QuestionDto>  getAllQuestion();
 
     void insertParseXmlQuestion(List<ParseQuestionDto> questionList, List<ParseQuestionDetailDto> questionDetailDtoList);
+
+
 }
