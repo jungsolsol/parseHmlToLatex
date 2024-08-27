@@ -1,10 +1,8 @@
 package nsd.open.service;
 
 import lombok.RequiredArgsConstructor;
-import nsd.open.dto.Answer;
-import nsd.open.dto.HtmlRender;
-import nsd.open.dto.Latex;
-import nsd.open.dto.Question;
+import nsd.open.dto.*;
+import nsd.open.utils.StringSplit;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Queue;
 
 
 @Service
@@ -45,39 +44,97 @@ public class XmlParseService {
         return document;
     }
 
-    public List<Question> parseQuestion(Elements elements) {
-        List<Question> questionList = new ArrayList<>();
-
-        for (Element elem : elements) {
-            String text = elem.text();
-
-            String questionId = extractQuestionId(text);
-            String questionText = extractQuestionText(text);
-            String answer = extractAnswer(text);
-
-            System.out.println(questionId);
-            System.out.println(questionText);
-            System.out.println(answer);
-
+//    public List<Question> parseQuestion(Elements elements) {
+//        List<Question> questionList = new ArrayList<>();
+//        for (Element elem : elements) {
+//            String text = elem.text();
+//            StringSplit stringSplit = extractQuestionId(text);
+//            String questionId = stringSplit.getExtracted();
+//            String remainingText = stringSplit.getRemaining();
+//            String questionText = extractQuestionText(remainingText);
+//            String answer = extractAnswer(remainingText);
 //
-//            if (questionId != null && questionText != null && answer != null) {
-//                questionList.add(question);
+//            System.out.println(questionId);
+//            System.out.println(questionText);
+//            System.out.println(answer);
+////            if (questionId != null && questionText != null && answer != null) {
+//                questionList.add(Question.builder()
+//                        .questionId(questionId)
+//                        .questionText(questionText)
+//                        .answer(answer)
+//                        .build());
+////            }
+//
+//            while (remainingText != null && !remainingText.isEmpty()) {
+//                stringSplit = extractQuestionId(remainingText);
+//                questionId = stringSplit.getExtracted();
+//                remainingText = stringSplit.getRemaining();
+//                questionText = extractQuestionText(remainingText);
+//                answer = extractAnswer(remainingText);
+//
+//                System.out.println(questionId);
+//                System.out.println(questionText);
+//                System.out.println(answer);
+////                if (questionId != null && questionText != null && answer != null) {
+//                    questionList.add(Question.builder()
+//                            .questionId(questionId)
+//                            .questionText(questionText)
+//                            .answer(answer)
+//                            .build());
+////                }
 //            }
+//        }
+//
+//        return questionList;
+//    }
+        public List<ParseQuestion> parseQuestion (Elements elements){
+            List<ParseQuestion> questionList = new ArrayList<>();
+
+            if (elements == null || elements.isEmpty()) {
+                return questionList;
+            }
+
+            for (Element elem : elements) {
+                String text = elem.text();
+                if (text == null || text.trim().isEmpty()) {
+                    continue;
+                }
+
+                StringSplit stringSplit = extractQuestionId(text);
+
+                while (stringSplit != null) {
+                    String questionId = stringSplit.getExtracted();
+                    String remainingText = stringSplit.getRemaining();
+                    String questionText = extractQuestionText(remainingText);
+                    String answer = extractAnswer(remainingText);
+
+                    if (questionId != null && !questionId.trim().isEmpty() &&
+                            questionText != null && !questionText.trim().isEmpty() &&
+                            answer != null && !answer.trim().isEmpty()) {
+                        questionList.add(ParseQuestion.builder()
+                                .questionId(questionId)
+                                .questionText(questionText)
+                                .answer(answer)
+                                .build());
+                    }
+
+                    stringSplit = extractQuestionId(remainingText);
+                }
+            }
+
+            return questionList;
         }
 
-        return questionList;
-    }
+    private StringSplit extractQuestionId(String text) {
 
-    private String extractQuestionId(String text) {
-
-        System.out.println(text);
         int startIdx = text.indexOf("문항 ID :");
         if (startIdx != -1) {
             startIdx += "문항 ID :".length();
             int endIdx = text.indexOf("(문제)", startIdx);
             if (endIdx != -1) {
-                System.out.println(text.substring(startIdx, endIdx).trim());
-                return text.substring(startIdx, endIdx).trim();
+                String extracted = text.substring(startIdx, endIdx).trim();
+                String remaining = text.substring(endIdx).trim();
+                return new StringSplit(extracted, remaining);
             }
         }
         return null;
@@ -118,7 +175,7 @@ public class XmlParseService {
 
             for (org.jsoup.nodes.Element script : scripts) {
                 String scriptContent = script.html();
-                Question question = Question.builder().question( scriptContent).build();
+                Question question = Question.builder().question(scriptContent).build();
                 questionList.add(question);
             }
         }

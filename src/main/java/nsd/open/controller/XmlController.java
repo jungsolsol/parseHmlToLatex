@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import nsd.open.dto.HtmlRender;
+import nsd.open.dto.ParseQuestion;
 import nsd.open.dto.Question;
 import nsd.open.service.QuestionService;
 import nsd.open.service.XmlParseService;
@@ -24,6 +25,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -46,12 +48,13 @@ public class XmlController {
     })
     @PostMapping
     @ResponseBody
-    public ResponseEntity<?> insertQuestion(){
+    public ResponseEntity<?> insertQuestion() {
 
         String filePath = "C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xml\\";
         File directory = new File(filePath);
         File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
 
+        List<ParseQuestion> questionList = new ArrayList<>();
         if (files != null) {
             for (File file : files) {
                 try (FileReader rw = new FileReader(file)) {
@@ -63,15 +66,15 @@ public class XmlController {
                     }
                     Document doc = xmlParseService.getDocument(content.toString());
                     Elements elements = doc.getElementsByTag("BODY");
-                    xmlParseService.parseQuestion(elements);
-//                    HtmlRender htmlRender = xmlParseService.renderHtml(content.toString());
-                }
+                    questionList = xmlParseService.parseQuestion(elements);
 
+                }
                 catch (Exception e) {
                 }
             }
-            }
-        return new ResponseEntity<>("response", HttpStatus.OK);
+        }
+        questionService.insertParseXmlQuestion(questionList);
+        return new ResponseEntity<>(questionList, HttpStatus.OK);
     }
 
     @Operation(summary = "문항 검색", description = "문항 검색",tags = "")
@@ -107,7 +110,7 @@ public class XmlController {
                     HtmlRender htmlRender = xmlParseService.renderHtml(content.toString());
                     System.out.println(htmlRender.latex().latex().toString());
                     model.addAttribute("latexContent", htmlRender.latex().latex());
-                    model.addAttribute("QuestionContent", htmlRender.question().question());
+                    model.addAttribute("QuestionContent", htmlRender.question().questionText());
                 }
 
                     catch (IOException e) {
