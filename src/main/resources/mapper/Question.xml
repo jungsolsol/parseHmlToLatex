@@ -6,7 +6,7 @@
 <!--    </select>-->
     <!--테스트용-->
     <select id="getAllQuestion" resultType="nsd.open.dto.QuestionDto">
-        select q.question from question q;
+        select q from question q;
     </select>
 
     <insert id="insertQuestion" parameterType="nsd.open.dto.QuestionDto">

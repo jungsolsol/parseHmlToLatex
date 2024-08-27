@@ -2,6 +2,7 @@ package nsd.open.service;
 
 import lombok.RequiredArgsConstructor;
 import nsd.open.dto.*;
+import nsd.open.dto.enums.Question.DiffCode;
 import nsd.open.utils.StringSplit;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -16,14 +17,16 @@ import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
 @Service
 @RequiredArgsConstructor
-public class XmlParseService {
+public class ParseService {
 
 //    private final QuestionService questionService;
 
@@ -47,50 +50,6 @@ public class XmlParseService {
         org.jsoup.nodes.Document document = parsed.outputSettings(new org.jsoup.nodes.Document.OutputSettings().prettyPrint(true).indentAmount(4));
         return document;
     }
-
-//    public List<Question> parseQuestion(Elements elements) {
-//        List<Question> questionList = new ArrayList<>();
-//        for (Element elem : elements) {
-//            String text = elem.text();
-//            StringSplit stringSplit = extractQuestionId(text);
-//            String questionId = stringSplit.getExtracted();
-//            String remainingText = stringSplit.getRemaining();
-//            String questionText = extractQuestionText(remainingText);
-//            String answer = extractAnswer(remainingText);
-//
-//            System.out.println(questionId);
-//            System.out.println(questionText);
-//            System.out.println(answer);
-////            if (questionId != null && questionText != null && answer != null) {
-//                questionList.add(Question.builder()
-//                        .questionId(questionId)
-//                        .questionText(questionText)
-//                        .answer(answer)
-//                        .build());
-////            }
-//
-//            while (remainingText != null && !remainingText.isEmpty()) {
-//                stringSplit = extractQuestionId(remainingText);
-//                questionId = stringSplit.getExtracted();
-//                remainingText = stringSplit.getRemaining();
-//                questionText = extractQuestionText(remainingText);
-//                answer = extractAnswer(remainingText);
-//
-//                System.out.println(questionId);
-//                System.out.println(questionText);
-//                System.out.println(answer);
-////                if (questionId != null && questionText != null && answer != null) {
-//                    questionList.add(Question.builder()
-//                            .questionId(questionId)
-//                            .questionText(questionText)
-//                            .answer(answer)
-//                            .build());
-////                }
-//            }
-//        }
-//
-//        return questionList;
-//    }
         public List<ParseQuestionDto> parseQuestion (Elements elements){
             List<ParseQuestionDto> questionList = new ArrayList<>();
 
@@ -256,10 +215,101 @@ public class XmlParseService {
                                 break;
                         }
                     }
+                    rowNo = 0 ;
                     System.out.println( rowNo + "번 행 : " + cellIndex + "번 열 값은: " + value);
                 }
             }
         }
     return null;
     }
+    public ArrayList<ArrayList<String>> readFilter(String fileName) throws IOException {
+        FileInputStream fis = new FileInputStream(fileName);
+        List<ParseQuestionDetailDto> questionDetailDtoList = new ArrayList<>();
+
+        @SuppressWarnings("resource")
+        XSSFWorkbook workbook = new XSSFWorkbook(fis);
+        int rowindex = 0;
+        int columnindex = 0;
+        ArrayList<ArrayList<String>> filters = new ArrayList<ArrayList<String>>();
+
+        int sheetCn = workbook.getNumberOfSheets();	// 시트 수
+        for(int sheetnum=0; sheetnum<sheetCn; sheetnum++) {	// 시트 수만큼 반복
+
+            int sheetnum2=sheetnum+1;
+            System.out.println("sheet = " + sheetnum2);
+
+            XSSFSheet sheet = workbook.getSheetAt(sheetnum);	// 읽어올 시트 선택
+            int rows = sheet.getPhysicalNumberOfRows();    // 행의 수
+            XSSFRow row = null;
+
+            for (rowindex = 1; rowindex < rows; rowindex++) {	// 행의 수만큼 반복
+
+                row = sheet.getRow(rowindex);	// rowindex 에 해당하는 행을 읽는다
+                ArrayList<String> filter = new ArrayList<String>();	// 한 행을 읽어서 저장할 변수 선언
+
+                if (row != null) {
+                    int cells = 13;	// 셀의 수
+                    cells = row.getPhysicalNumberOfCells();    // 열의 수
+                    for (columnindex = 0; columnindex <= cells; columnindex++) {	// 열의 수만큼 반복
+                        XSSFCell cell_filter = row.getCell(columnindex);	// 셀값을 읽는다
+                        String value = "";
+                        // 셀이 빈값일경우를 위한 널체크
+                        if (cell_filter == null) {
+                            continue;
+                        } else {
+                            // 타입별로 내용 읽기
+                            switch (cell_filter.getCellType()) {
+                                case XSSFCell.CELL_TYPE_FORMULA:
+                                    value = cell_filter.getCellFormula();
+                                    break;
+                                case XSSFCell.CELL_TYPE_NUMERIC:
+                                    value = cell_filter.getNumericCellValue() + "";
+                                    break;
+                                case XSSFCell.CELL_TYPE_STRING:
+                                    value = cell_filter.getStringCellValue() + "";
+                                    break;
+                                case XSSFCell.CELL_TYPE_BLANK:
+                                    value = cell_filter.getBooleanCellValue() + "";
+                                    break;
+                                case XSSFCell.CELL_TYPE_ERROR:
+                                    value = cell_filter.getErrorCellValue() + "";
+                                    break;
+                            }
+                        }
+                        filter.add(value);
+                    }
+                }
+                filters.add(filter);
+            }
+        }
+        fis.close();
+
+
+        for (ArrayList arrayList: filters) {
+
+            String diffCodeString = (String) arrayList.get(4);
+            DiffCode diffCode = Arrays.stream(DiffCode.values())
+                    .filter(dc -> dc.getCode().equals(diffCodeString))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid diffCode: " + diffCodeString));
+
+            ParseQuestionDetailDto parseQuestionDetailDto = ParseQuestionDetailDto.builder()
+                    .questionId((String) arrayList.get(0))
+                    .achCode((String) arrayList.get(45))
+                    .diffCode(diffCode.getDiffCode())
+                    .unit((String) arrayList.get(31))
+                    .session((String) arrayList.get(33))
+                    .sub1session((String) arrayList.get(35))
+                    .topic((String) arrayList.get(37))
+                    .build();
+
+            questionDetailDtoList.add(parseQuestionDetailDto);
+        }
+        for (ParseQuestionDetailDto dtos : questionDetailDtoList ) {
+            System.out.println(dtos);
+        }
+
+        return filters;
+    }
+
 }

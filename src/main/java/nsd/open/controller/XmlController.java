@@ -9,8 +9,9 @@ import nsd.open.dto.HtmlRenderDto;
 import nsd.open.dto.ParseQuestionDetailDto;
 import nsd.open.dto.ParseQuestionDto;
 import nsd.open.dto.QuestionDto;
+import nsd.open.payload.model.RequestQType;
+import nsd.open.service.ParseService;
 import nsd.open.service.QuestionService;
-import nsd.open.service.XmlParseService;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -34,7 +35,7 @@ import java.util.List;
 public class XmlController {
 
 
-    private final XmlParseService xmlParseService;
+    private final ParseService parseService;
 
     private final QuestionService questionService;
 
@@ -65,18 +66,26 @@ public class XmlController {
                     while ((i = rw.read()) != -1) {
                         content.append((char) i);
                     }
-                    Document doc = xmlParseService.getDocument(content.toString());
+                    Document doc = parseService.getDocument(content.toString());
                     Elements elements = doc.getElementsByTag("BODY");
-                    questionList = xmlParseService.parseQuestion(elements);
+                    questionList = parseService.parseQuestion(elements);
 
                 }
                 catch (Exception e) {
                 }
             }
         }
-        FileInputStream file = new FileInputStream("C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xlsx\\수학1(이준열)_4-1-1_문항속성.xlsx");
-        XSSFWorkbook workbook = new XSSFWorkbook(file);
-        questionDetailDtoList = xmlParseService.readExcel(workbook);
+
+//        TODO requestParam 에서 천재교육, 대교 별로 타입 확인
+//          1. 대교 일시 API 요청하여 문항 삽입
+//          2. 천재교육일시 excel 읽어서 문항 삽입
+
+
+        if (RequestQType.천재교육.getQTypeId() == 1) {
+            ArrayList<ArrayList<String>> arrayLists = parseService.readFilter("C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xlsx\\수학1(이준열)_4-1-1_문항속성.xlsx");
+
+        }
+
         questionService.insertParseXmlQuestion(questionList,questionDetailDtoList);
         return new ResponseEntity<>(questionList, HttpStatus.OK);
     }
@@ -109,7 +118,7 @@ public class XmlController {
                     while ((i = rw.read()) != -1) {
                         content.append((char) i);
                     }
-                    HtmlRenderDto htmlRender = xmlParseService.renderHtml(content.toString());
+                    HtmlRenderDto htmlRender = parseService.renderHtml(content.toString());
                     model.addAttribute("latexContent", htmlRender.getLatex().getLatex());
                     model.addAttribute("QuestionContent", htmlRender.getParseQuestion().getQuestionText());
                 }
@@ -118,9 +127,8 @@ public class XmlController {
                     e.printStackTrace();
                 }
             }
-//            return "latex";
-            List<QuestionDto> allQuestion = questionService.getAllQuestion();
-            model.addAttribute("QuestionByDB", allQuestion);
+//            List<QuestionDto> allQuestion = questionService.getAllQuestion();
+//            model.addAttribute("QuestionByDB", allQuestion);
 
 
         } else {
