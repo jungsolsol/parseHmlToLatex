@@ -3,6 +3,10 @@ package nsd.open.service;
 import lombok.RequiredArgsConstructor;
 import nsd.open.dto.*;
 import nsd.open.utils.StringSplit;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,9 +18,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Queue;
 
 
 @Service
@@ -218,5 +220,46 @@ public class XmlParseService {
     }
 
 
+    public List<ParseQuestionDetailDto> readExcel(XSSFWorkbook workbook) {
 
+        int rowNo = 0;
+        int cellIndex = 0;
+
+        XSSFSheet sheet = workbook.getSheetAt(0);
+
+        int rows = sheet.getPhysicalNumberOfRows();
+        for(rowNo = 0; rowNo < rows; rowNo++){
+            XSSFRow row = sheet.getRow(rowNo);
+            if(row != null){
+                int cells = row.getPhysicalNumberOfCells();
+                for(cellIndex = 0; cellIndex <= cells; cellIndex++){
+                    XSSFCell cell = row.getCell(cellIndex);
+                    String value = "";
+                    if(cell == null){
+                        continue;
+                    }else{
+                        switch (cell.getCellType()){
+                            case XSSFCell.CELL_TYPE_FORMULA:
+                                value = cell.getCellFormula();
+                                break;
+                            case XSSFCell.CELL_TYPE_NUMERIC:
+                                value = cell.getNumericCellValue() + "";
+                                break;
+                            case XSSFCell.CELL_TYPE_STRING:
+                                value = cell.getStringCellValue() + "";
+                                break;
+                            case XSSFCell.CELL_TYPE_BLANK:
+                                value = cell.getBooleanCellValue() + "";
+                                break;
+                            case XSSFCell.CELL_TYPE_ERROR:
+                                value = cell.getErrorCellValue() + "";
+                                break;
+                        }
+                    }
+                    System.out.println( rowNo + "번 행 : " + cellIndex + "번 열 값은: " + value);
+                }
+            }
+        }
+    return null;
+    }
 }

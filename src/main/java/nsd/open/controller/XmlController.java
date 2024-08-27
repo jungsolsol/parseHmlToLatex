@@ -6,10 +6,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import nsd.open.dto.HtmlRenderDto;
+import nsd.open.dto.ParseQuestionDetailDto;
 import nsd.open.dto.ParseQuestionDto;
 import nsd.open.dto.QuestionDto;
 import nsd.open.service.QuestionService;
 import nsd.open.service.XmlParseService;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.http.HttpStatus;
@@ -21,9 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,13 +47,15 @@ public class XmlController {
     })
     @PostMapping
     @ResponseBody
-    public ResponseEntity<?> insertQuestion() {
+    public ResponseEntity<?> insertQuestion() throws IOException {
 
         String filePath = "C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xml\\";
         File directory = new File(filePath);
         File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
 
         List<ParseQuestionDto> questionList = new ArrayList<>();
+        List<ParseQuestionDetailDto> questionDetailDtoList = new ArrayList<>();
+
         if (files != null) {
             for (File file : files) {
                 try (FileReader rw = new FileReader(file)) {
@@ -72,7 +74,10 @@ public class XmlController {
                 }
             }
         }
-        questionService.insertParseXmlQuestion(questionList);
+        FileInputStream file = new FileInputStream("C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xlsx\\수학1(이준열)_4-1-1_문항속성.xlsx");
+        XSSFWorkbook workbook = new XSSFWorkbook(file);
+        questionDetailDtoList = xmlParseService.readExcel(workbook);
+        questionService.insertParseXmlQuestion(questionList,questionDetailDtoList);
         return new ResponseEntity<>(questionList, HttpStatus.OK);
     }
 
@@ -92,8 +97,6 @@ public class XmlController {
     public String renderXml(Model model, @RequestParam(value = "fileName",required = false) String fileName) throws IOException, ParserConfigurationException, SAXException {
         String filePath = "C:\\Users\\jsol7\\Downloads\\open\\open\\src\\main\\resources\\xml\\";
         File directory = new File(filePath);
-//        File[] files = directory.listFiles((dir, name) -> name.(fileName));
-//        File[] files = directory.listFiles((dir, name) -> name.matches(fileName));
         File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
 
         if (files != null) {

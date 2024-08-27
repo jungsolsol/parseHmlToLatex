@@ -31,7 +31,7 @@ public class SwaggerConfig {
 		List<io.swagger.v3.oas.models.servers.Server> servers = new ArrayList<>();
 
 		io.swagger.v3.oas.models.servers.Server server = new io.swagger.v3.oas.models.servers.Server();
-		server.url("http://localhost:8088");
+		server.url("http://localhost:8080");
 		server.description("로컬");
 		servers.add(server);
 
